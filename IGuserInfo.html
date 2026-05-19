@@ -1,0 +1,1922 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Instagram数据监测</title>
+
+  <style>
+    :root {
+      --text: #172033;
+      --muted: #748196;
+      --line: rgba(113, 128, 150, .2);
+      --card: rgba(255, 255, 255, .78);
+      --shadow: 0 18px 45px rgba(69, 93, 115, .12);
+      --mint: #58ddb8;
+      --sky: #66caff;
+      --rose: #ff7387;
+      --green-text: #087f6f;
+      --red-text: #d95867;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC",
+        "Microsoft YaHei", Arial, sans-serif;
+      background:
+        radial-gradient(circle at 12% 0%, rgba(177, 245, 220, .55), transparent 30%),
+        radial-gradient(circle at 86% 8%, rgba(190, 232, 255, .65), transparent 28%),
+        linear-gradient(160deg, #fff 0%, #f7fcff 45%, #f8fff9 100%);
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      user-select: none;
+    }
+
+    .app {
+      width: min(920px, 100%);
+      min-height: 100dvh;
+      margin: 0 auto;
+      padding: 16px 14px calc(22px + env(safe-area-inset-bottom));
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .app-title {
+      margin: 4px 4px 14px;
+      text-align: center;
+      font-size: clamp(26px, 7vw, 38px);
+      line-height: 1.15;
+      font-weight: 950;
+      letter-spacing: -0.04em;
+      background: linear-gradient(135deg, #37c6ff 0%, #58ddb8 48%, #9b8cff 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .search-panel,
+    .bottom-card {
+      border: 1px solid rgba(255, 255, 255, .58);
+      border-radius: 28px;
+      background: linear-gradient(
+        145deg,
+        rgba(255, 255, 255, .68),
+        rgba(255, 255, 255, .38)
+      );
+      -webkit-backdrop-filter: blur(22px) saturate(1.35);
+      backdrop-filter: blur(22px) saturate(1.35);
+      box-shadow:
+        0 18px 45px rgba(69, 93, 115, .14),
+        inset 0 1px 0 rgba(255, 255, 255, .72);
+    }
+
+    .search-panel {
+      position: sticky;
+      top: 10px;
+      z-index: 10;
+      padding: 16px 14px 14px;
+    }
+
+    .bottom-card {
+      margin-top: auto;
+      padding: 12px;
+    }
+
+    .search-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+    }
+
+    .glass-input {
+      width: 100%;
+      min-width: 0;
+      border: 1px solid rgba(255, 255, 255, .66);
+      outline: none;
+      color: var(--text);
+      background: rgba(255, 255, 255, .52);
+      -webkit-backdrop-filter: blur(16px) saturate(1.25);
+      backdrop-filter: blur(16px) saturate(1.25);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .85),
+        0 8px 24px rgba(82, 149, 180, .08);
+    }
+
+    .glass-input::placeholder {
+      color: rgba(116, 129, 150, .78);
+    }
+
+    .glass-input:focus {
+      border-color: rgba(102, 202, 255, .86);
+      background: rgba(255, 255, 255, .72);
+      box-shadow:
+        0 0 0 4px rgba(102, 202, 255, .18),
+        inset 0 1px 0 rgba(255, 255, 255, .9);
+    }
+
+    .search-input {
+      min-height: 50px;
+      padding: 13px 15px;
+      border-radius: 18px;
+      font-size: 16px;
+    }
+
+    .key-input {
+      min-height: 44px;
+      max-width: 360px;
+      padding: 10px 12px;
+      border-radius: 15px;
+      font-size: 13px;
+    }
+
+    .toolbar,
+    .footer-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .toolbar {
+      margin-top: 10px;
+    }
+
+    .key-row {
+      width: min(580px, 100%);
+      margin: 12px auto 0;
+      display: grid;
+      grid-template-columns: minmax(150px, 360px) auto auto;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      min-height: 46px;
+      padding: 12px 14px;
+      border: 0;
+      border-radius: 17px;
+      cursor: pointer;
+      color: #fff;
+      font-weight: 800;
+      font-size: 15px;
+      box-shadow: 0 10px 24px rgba(56, 157, 197, .18);
+      transition: transform .16s ease, box-shadow .16s ease, opacity .16s ease;
+    }
+
+    .key-btn {
+      min-height: 44px;
+      padding: 10px 14px;
+      border-radius: 15px;
+      font-size: 14px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #62d5ff, #64e3ba);
+    }
+
+    .btn-mint {
+      background: linear-gradient(135deg, #62dfbd, #9be7cf);
+    }
+
+    .btn-sky {
+      background: linear-gradient(135deg, #79cfff, #9adffd);
+    }
+
+    .btn-soft-danger {
+      color: #de5869;
+      border: 1px solid rgba(255, 115, 135, .22);
+      background: linear-gradient(135deg, #fff4f6, #fff9fa);
+      box-shadow: 0 10px 24px rgba(255, 115, 135, .12);
+    }
+
+    .btn:disabled,
+    .mini-btn:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    @media (hover:hover) {
+      .btn:not(:disabled):hover,
+      .mini-btn:not(:disabled):hover {
+        transform: translateY(-1px);
+      }
+    }
+
+    .cards {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      align-content: start;
+      gap: 14px;
+    }
+
+    .card {
+      position: relative;
+      overflow: hidden;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--card);
+      -webkit-backdrop-filter: blur(18px);
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+    }
+
+    .card.loading {
+      opacity: .78;
+    }
+
+    .card.loading::after {
+      content: "";
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--mint);
+      box-shadow: 0 0 0 6px rgba(88, 221, 184, .18);
+      animation: pulse 1s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(.88); opacity: .72; }
+      50% { transform: scale(1.15); opacity: 1; }
+    }
+
+    .card-top {
+      display: grid;
+      grid-template-columns: 56px 1fr auto;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .avatar {
+      width: 56px;
+      height: 56px;
+      display: block;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, .86);
+      background: #ecfdf5;
+      box-shadow:
+        0 8px 20px rgba(28, 88, 92, .14),
+        0 0 0 4px rgba(255, 255, 255, .45);
+    }
+
+    .identity {
+      min-width: 0;
+    }
+
+    .username-line {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .username {
+      max-width: 190px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 900;
+      font-size: 17px;
+      letter-spacing: -.01em;
+    }
+
+    .fullname {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 13px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      height: 22px;
+      padding: 0 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .badge.verified {
+      color: #277dcc;
+      background: #eaf6ff;
+    }
+
+    .badge.private {
+      color: #b97000;
+      background: #fff5dc;
+    }
+
+    .badge.public {
+      color: #16846f;
+      background: #e9fbf5;
+    }
+
+    .card-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+    }
+
+    .mini-btn {
+      min-height: 34px;
+      padding: 8px 10px;
+      border: 0;
+      border-radius: 12px;
+      cursor: pointer;
+      color: #277fa7;
+      background: #eef9ff;
+      font-weight: 800;
+      font-size: 13px;
+      transition: transform .16s ease, opacity .16s ease;
+    }
+
+    .mini-btn.danger {
+      color: #dc5a6b;
+      background: #fff1f3;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .metric {
+      min-width: 0;
+      padding: 10px;
+      border: 1px solid rgba(123, 143, 164, .16);
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(248, 253, 255, .96), rgba(255, 255, 255, .8));
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 3px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 20px;
+      letter-spacing: -.03em;
+    }
+
+    .change-dot {
+      display: inline-flex;
+      align-items: center;
+      margin-top: 6px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      color: var(--green-text);
+      background: rgba(16, 185, 129, .1);
+      font-style: normal;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .change-dot.down {
+      color: var(--red-text);
+      background: rgba(255, 115, 135, .12);
+    }
+
+    .change-dot.flat {
+      color: #3575a6;
+      background: rgba(102, 202, 255, .12);
+    }
+
+    .details {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .detail {
+      display: grid;
+      grid-template-columns: 76px 1fr;
+      gap: 8px;
+      color: #39475b;
+      font-size: 13px;
+      line-height: 1.36;
+    }
+
+    .detail label {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .detail div {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .detail.bio div {
+      display: -webkit-box;
+      overflow: hidden;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+    }
+
+    .detail a {
+      color: #2f92c8;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .change-box {
+      margin-top: 12px;
+      padding: 10px;
+      border: 1px solid rgba(16, 185, 129, .18);
+      border-radius: 16px;
+      color: #0f766e;
+      background: rgba(236, 253, 245, .86);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .change-box strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 12px;
+    }
+
+    .toast-host {
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      bottom: calc(14px + env(safe-area-inset-bottom));
+      z-index: 100;
+      display: grid;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .toast {
+      justify-self: center;
+      max-width: min(560px, calc(100vw - 24px));
+      padding: 10px 12px;
+      border-radius: 15px;
+      color: #fff;
+      background: rgba(15, 23, 42, .9);
+      box-shadow: 0 14px 32px rgba(15, 23, 42, .22);
+      font-size: 13px;
+      animation: toastIn .2s ease both;
+    }
+
+    .toast.hide {
+      animation: toastOut .2s ease both;
+    }
+
+    @keyframes toastIn {
+      from { transform: translateY(8px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes toastOut {
+      to { transform: translateY(8px); opacity: 0; }
+    }
+
+    @media (max-width: 520px) {
+      .app {
+        padding: 12px 10px calc(18px + env(safe-area-inset-bottom));
+      }
+
+      .search-panel,
+      .bottom-card,
+      .card {
+        border-radius: 22px;
+      }
+
+      .search-row {
+        grid-template-columns: 1fr;
+      }
+
+      .key-row {
+        grid-template-columns: 1fr auto auto;
+        gap: 8px;
+      }
+
+      .key-btn {
+        padding: 10px;
+        min-width: 58px;
+      }
+
+      .card-top {
+        grid-template-columns: 52px 1fr;
+      }
+
+      .avatar {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+      }
+
+      .card-actions {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .metrics {
+        gap: 6px;
+      }
+
+      .metric {
+        padding: 9px 7px;
+      }
+
+      .metric strong {
+        font-size: 18px;
+      }
+
+      .detail {
+        grid-template-columns: 70px 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <section class="search-panel">
+      <h1 class="app-title">Instagram数据监测</h1>
+
+      <div class="search-row">
+        <input
+          id="searchInput"
+          class="glass-input search-input"
+          type="text"
+          inputmode="text"
+          autocomplete="off"
+          placeholder="输入 IG 用户名或主页链接"
+        />
+        <button id="searchBtn" class="btn btn-primary">查询</button>
+      </div>
+
+      <div class="toolbar">
+        <button id="updateAllBtn" class="btn btn-mint">一键更新</button>
+        <button id="clearRecordsBtn" class="btn btn-soft-danger">清空记录</button>
+      </div>
+    </section>
+
+    <section id="cards" class="cards"></section>
+
+    <footer class="bottom-card">
+      <div class="footer-actions">
+        <button id="exportBtn" class="btn btn-sky">导出</button>
+        <button id="clearDataBtn" class="btn btn-soft-danger">清空数据</button>
+      </div>
+
+      <div class="key-row">
+        <input
+          id="apiKeyInput"
+          class="glass-input key-input"
+          type="password"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="Apify API Key"
+        />
+        <button id="apiKeySaveBtn" class="btn btn-primary key-btn">确认</button>
+        <button id="apiKeyClearBtn" class="btn btn-soft-danger key-btn">清除</button>
+      </div>
+    </footer>
+  </main>
+
+  <div id="toastHost" class="toast-host" aria-live="polite"></div>
+
+  <script>
+    "use strict";
+
+    // Apify Actor 配置
+    const APIFY_ACTOR_ID = "apify/instagram-profile-scraper";
+    const API_BATCH_SIZE = 20;
+
+    // 本地存储键
+    const RECORDS_STORAGE_KEY = "ig_profile_tracker_records_v1";
+    const TOKEN_STORAGE_KEY = "ig_profile_tracker_apify_token_v1";
+
+    // 头像加载模式：direct / proxy / none
+    const AVATAR_LOAD_MODE = "proxy";
+    const AVATAR_TIMEOUT_MS = 8000;
+
+    const numberFormatter = new Intl.NumberFormat("en-US");
+    const dateFormatter = new Intl.DateTimeFormat("zh-CN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false
+    });
+
+    const PLACEHOLDER_AVATAR =
+      "data:image/svg+xml;charset=UTF-8," +
+      encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
+          <defs>
+            <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+              <stop stop-color="#d8fff2"/>
+              <stop offset="1" stop-color="#dff3ff"/>
+            </linearGradient>
+          </defs>
+          <rect width="160" height="160" rx="80" fill="url(#g)"/>
+          <circle cx="80" cy="64" r="28" fill="#8fd4c5"/>
+          <path d="M35 137c8-30 29-46 45-46s37 16 45 46" fill="#8fd4c5"/>
+        </svg>
+      `);
+
+    // Apify 返回字段兼容
+    const FIELD_ALIASES = {
+      username: [
+        "username",
+        "userName",
+        "handle",
+        "ownerUsername",
+        "inputUsername",
+        "user.username"
+      ],
+      id: [
+        "id",
+        "userId",
+        "ownerId",
+        "pk",
+        "user.id"
+      ],
+      fullName: [
+        "fullName",
+        "full_name",
+        "name",
+        "user.full_name"
+      ],
+      biography: [
+        "biography",
+        "bio",
+        "description",
+        "user.biography"
+      ],
+      avatar: [
+        "profilePicUrlHD",
+        "profilePicUrl",
+        "profilePictureUrlHD",
+        "profilePictureUrl",
+        "profile_pic_url_hd",
+        "profile_pic_url",
+        "avatar",
+        "image",
+        "displayUrl",
+        "user.profile_pic_url"
+      ],
+      postsCount: [
+        "postsCount",
+        "posts",
+        "mediaCount",
+        "posts_count",
+        "edge_owner_to_timeline_media.count"
+      ],
+      followersCount: [
+        "followersCount",
+        "followers",
+        "followerCount",
+        "followers_count",
+        "edge_followed_by.count"
+      ],
+      followsCount: [
+        "followsCount",
+        "followingCount",
+        "followingsCount",
+        "follows",
+        "following",
+        "followings",
+        "following_count",
+        "edge_follow.count"
+      ],
+      externalUrl: [
+        "externalUrl",
+        "external_url",
+        "website",
+        "websiteUrl",
+        "bioLinks.0.url",
+        "externalUrlShimmed"
+      ],
+      profileUrl: [
+        "profileUrl",
+        "profile_url",
+        "url",
+        "inputUrl"
+      ],
+      isVerified: [
+        "isVerified",
+        "verified",
+        "is_verified",
+        "user.is_verified"
+      ],
+      isPrivate: [
+        "isPrivate",
+        "private",
+        "is_private",
+        "user.is_private"
+      ],
+      isBusinessAccount: [
+        "isBusinessAccount",
+        "businessAccount",
+        "is_business_account"
+      ],
+      businessCategoryName: [
+        "businessCategoryName",
+        "business_category_name",
+        "categoryName",
+        "category",
+        "businessCategory"
+      ],
+      highlightReelCount: [
+        "highlightReelCount",
+        "highlight_reel_count"
+      ],
+      igtvVideoCount: [
+        "igtvVideoCount",
+        "igtv_video_count"
+      ],
+      joinedRecently: [
+        "joinedRecently",
+        "isJoinedRecently"
+      ]
+    };
+
+    const DIFF_FIELDS = [
+      { key: "postsCount", label: "帖子", type: "number" },
+      { key: "followersCount", label: "粉丝", type: "number" },
+      { key: "followsCount", label: "关注", type: "number" },
+      { key: "fullName", label: "全名", type: "text" },
+      { key: "biography", label: "简介", type: "text" },
+      { key: "externalUrl", label: "外链", type: "text" },
+      { key: "businessCategoryName", label: "分类", type: "text" },
+      { key: "isVerified", label: "认证", type: "boolean" },
+      { key: "isPrivate", label: "私密", type: "boolean" },
+      { key: "isBusinessAccount", label: "商业号", type: "boolean" },
+      { key: "avatar", label: "头像", type: "avatar" }
+    ];
+
+    const els = {
+      searchInput: document.getElementById("searchInput"),
+      searchBtn: document.getElementById("searchBtn"),
+      updateAllBtn: document.getElementById("updateAllBtn"),
+      clearRecordsBtn: document.getElementById("clearRecordsBtn"),
+      exportBtn: document.getElementById("exportBtn"),
+      clearDataBtn: document.getElementById("clearDataBtn"),
+      apiKeyInput: document.getElementById("apiKeyInput"),
+      apiKeySaveBtn: document.getElementById("apiKeySaveBtn"),
+      apiKeyClearBtn: document.getElementById("apiKeyClearBtn"),
+      cards: document.getElementById("cards"),
+      toastHost: document.getElementById("toastHost")
+    };
+
+    const state = {
+      records: loadRecords(),
+      loadingKeys: new Set(),
+      busy: false
+    };
+
+    // 事件绑定
+    els.searchBtn.addEventListener("click", handleSearch);
+    els.updateAllBtn.addEventListener("click", handleUpdateAll);
+    els.clearRecordsBtn.addEventListener("click", clearAllRecords);
+    els.clearDataBtn.addEventListener("click", clearAllRecords);
+    els.exportBtn.addEventListener("click", exportCsv);
+    els.apiKeySaveBtn.addEventListener("click", handleApiKeySave);
+    els.apiKeyClearBtn.addEventListener("click", handleApiKeyClear);
+
+    els.searchInput.addEventListener("keydown", event => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        handleSearch();
+      }
+    });
+
+    els.apiKeyInput.addEventListener("keydown", event => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        handleApiKeySave();
+      }
+    });
+
+    els.cards.addEventListener("click", event => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+
+      const btn = target.closest("[data-action]");
+      if (!btn || state.busy) return;
+
+      const card = target.closest("[data-key]");
+      if (!card) return;
+
+      const key = card.dataset.key;
+      const action = btn.dataset.action;
+
+      if (action === "refresh") refreshOne(key);
+      if (action === "delete") deleteRecord(key);
+    });
+
+    els.cards.addEventListener("error", event => {
+      const target = event.target;
+      if (target instanceof HTMLImageElement && target.matches("img.avatar")) {
+        target.src = PLACEHOLDER_AVATAR;
+      }
+    }, true);
+
+    loadApiKeyToInput();
+    renderCards();
+
+    async function handleSearch() {
+      if (state.busy) return;
+
+      const usernames = extractUsernames(els.searchInput.value);
+
+      if (!usernames.length) {
+        toast("请输入有效用户名或主页链接");
+        return;
+      }
+
+      await fetchAndSaveUsernames(usernames, { mode: "search" });
+    }
+
+    async function handleUpdateAll() {
+      if (state.busy) return;
+
+      const usernames = Object.values(state.records)
+        .map(item => item.username)
+        .filter(Boolean);
+
+      if (!usernames.length) {
+        toast("暂无记录");
+        return;
+      }
+
+      await fetchAndSaveUsernames(usernames, { mode: "all" });
+    }
+
+    async function refreshOne(key) {
+      const record = state.records[key];
+      if (!record) return;
+
+      await fetchAndSaveUsernames([record.username], { mode: "refresh" });
+    }
+
+    function deleteRecord(key) {
+      const record = state.records[key];
+      if (!record) return;
+
+      if (!confirm(`删除 @${record.username} 的记录？`)) return;
+
+      delete state.records[key];
+      state.loadingKeys.delete(key);
+
+      saveRecords();
+      renderCards();
+      toast("已删除");
+    }
+
+    function clearAllRecords() {
+      if (state.busy) return;
+
+      const hasData = Object.keys(state.records).length || localStorage.getItem(RECORDS_STORAGE_KEY);
+
+      if (!hasData) {
+        toast("暂无数据");
+        return;
+      }
+
+      if (!confirm("清空所有记录？")) return;
+
+      state.records = {};
+      state.loadingKeys.clear();
+
+      localStorage.removeItem(RECORDS_STORAGE_KEY);
+      renderCards();
+      toast("已清空");
+    }
+
+    function handleApiKeySave() {
+      const token = els.apiKeyInput.value.trim();
+
+      if (!token) {
+        toast("请输入 API Key");
+        return;
+      }
+
+      try {
+        localStorage.setItem(TOKEN_STORAGE_KEY, token);
+        els.apiKeyInput.value = token;
+        toast("已保存");
+      } catch {
+        toast("API Key 保存失败");
+      }
+    }
+
+    function handleApiKeyClear() {
+      try {
+        localStorage.removeItem(TOKEN_STORAGE_KEY);
+        els.apiKeyInput.value = "";
+        toast("已清除");
+      } catch {
+        toast("API Key 清除失败");
+      }
+    }
+
+    function loadApiKeyToInput() {
+      els.apiKeyInput.value = getStoredApiKey();
+    }
+
+    function getStoredApiKey() {
+      try {
+        return localStorage.getItem(TOKEN_STORAGE_KEY) || "";
+      } catch {
+        return "";
+      }
+    }
+
+    async function fetchAndSaveUsernames(usernames, options = {}) {
+      const mode = options.mode || "search";
+      const names = uniqueUsernames(usernames);
+
+      if (!names.length) return;
+
+      const addedUsers = [];
+      const changedUsers = [];
+      const missingUsers = [];
+
+      setBusy(true, mode);
+
+      try {
+        for (const batch of chunk(names, API_BATCH_SIZE)) {
+          setLoadingByUsernames(batch, true);
+
+          try {
+            const items = await fetchProfiles(batch);
+            const result = processFetchedItems(items, batch);
+
+            addedUsers.push(...result.added);
+            changedUsers.push(...result.changed);
+
+            for (const username of batch) {
+              if (!result.gotKeys.has(username.toLowerCase())) {
+                missingUsers.push(username);
+              }
+            }
+
+            saveRecords();
+          } finally {
+            setLoadingByUsernames(batch, false);
+            renderCards();
+          }
+        }
+
+        if (addedUsers.length) {
+          toast(`已保存 ${addedUsers.length} 个用户`);
+        }
+
+        if (changedUsers.length) {
+          changedUsers.forEach(item => {
+            toast(`@${item.username}：${item.summary}`, 4200);
+          });
+        }
+
+        if (!addedUsers.length && !changedUsers.length && !missingUsers.length) {
+          toast(mode === "all" ? "全部已更新，暂无变化" : "已更新，暂无变化");
+        }
+
+        if (missingUsers.length) {
+          toast(`未返回：${missingUsers.map(name => "@" + name).join("、")}`, 5200);
+        }
+
+        if (mode === "search" && (addedUsers.length || changedUsers.length)) {
+          els.searchInput.value = "";
+        }
+      } catch (error) {
+        console.error(error);
+        toast(errorToMessage(error), 6200);
+      } finally {
+        setBusy(false, mode);
+        saveRecords();
+        renderCards();
+      }
+    }
+
+    async function fetchProfiles(usernames) {
+      const token = getStoredApiKey();
+
+      if (!token) {
+        throw new Error("请先填写并确认 API Key");
+      }
+
+      const actorPath = APIFY_ACTOR_ID.replace(/\//g, "~");
+      const endpoint =
+        `https://api.apify.com/v2/acts/${actorPath}/run-sync-get-dataset-items` +
+        `?format=json&clean=true&timeout=120`;
+
+      const controller = new AbortController();
+      const timer = window.setTimeout(() => controller.abort(), 130000);
+
+      try {
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify(buildApifyInput(usernames)),
+          signal: controller.signal
+        });
+
+        const text = await response.text();
+
+        let payload;
+        try {
+          payload = text ? JSON.parse(text) : [];
+        } catch {
+          payload = text;
+        }
+
+        if (!response.ok) {
+          const message =
+            payload?.error?.message ||
+            payload?.message ||
+            response.statusText ||
+            "Apify 请求失败";
+          throw new Error(`Apify ${response.status}: ${message}`);
+        }
+
+        if (!Array.isArray(payload)) {
+          const message =
+            payload?.error?.message ||
+            payload?.message ||
+            "Apify 返回格式不是数组，请检查 Actor ID 或输入字段";
+          throw new Error(message);
+        }
+
+        return payload;
+      } catch (error) {
+        if (error.name === "AbortError") {
+          throw new Error("请求超时，请减少一次更新数量或稍后重试");
+        }
+        throw error;
+      } finally {
+        window.clearTimeout(timer);
+      }
+    }
+
+    function buildApifyInput(usernames) {
+      return {
+        usernames
+      };
+
+      /*
+        如果你的 Actor 入参不是 usernames，可改为：
+        return {
+          directUrls: usernames.map(name => `https://www.instagram.com/${name}/`)
+        };
+      */
+    }
+
+    function processFetchedItems(items, requestedUsernames = []) {
+      const added = [];
+      const changed = [];
+      const gotKeys = new Set();
+      const singleFallback = requestedUsernames.length === 1 ? requestedUsernames[0] : "";
+
+      for (const raw of items) {
+        const profile = normalizeProfile(raw, singleFallback);
+        if (!profile || !profile.username) continue;
+
+        gotKeys.add(profile.key);
+
+        const result = upsertProfile(profile);
+
+        if (result.isNew) {
+          added.push(profile.username);
+        } else if (result.changes.length) {
+          changed.push({
+            username: profile.username,
+            summary: summarizeChanges(result.changes)
+          });
+        }
+      }
+
+      return {
+        added,
+        changed,
+        gotKeys
+      };
+    }
+
+    function upsertProfile(profile) {
+      const oldRecord = state.records[profile.key];
+      const changes = oldRecord ? diffRecord(oldRecord, profile) : [];
+
+      const record = {
+        ...(oldRecord || {}),
+        ...profile,
+        lastChange: oldRecord
+          ? {
+              at: profile.lastUpdated,
+              items: changes
+            }
+          : null
+      };
+
+      state.records[profile.key] = record;
+
+      return {
+        record,
+        changes,
+        isNew: !oldRecord
+      };
+    }
+
+    function normalizeProfile(raw, fallbackUsername = "") {
+      const now = new Date().toISOString();
+
+      const rawUsername = pick(raw, FIELD_ALIASES.username) || fallbackUsername;
+      const username = sanitizeUsername(rawUsername);
+
+      if (!username) return null;
+
+      let profileUrl = stringValue(pick(raw, FIELD_ALIASES.profileUrl));
+
+      if (profileUrl && !/instagram\.com/i.test(profileUrl)) {
+        profileUrl = "";
+      }
+
+      if (!profileUrl) {
+        profileUrl = `https://www.instagram.com/${username}/`;
+      }
+
+      return {
+        key: username.toLowerCase(),
+        username,
+        id: stringValue(pick(raw, FIELD_ALIASES.id)),
+        fullName: stringValue(pick(raw, FIELD_ALIASES.fullName)),
+        biography: stringValue(pick(raw, FIELD_ALIASES.biography)),
+        avatar: stringValue(pick(raw, FIELD_ALIASES.avatar)),
+        postsCount: toNumber(pick(raw, FIELD_ALIASES.postsCount)),
+        followersCount: toNumber(pick(raw, FIELD_ALIASES.followersCount)),
+        followsCount: toNumber(pick(raw, FIELD_ALIASES.followsCount)),
+        externalUrl: stringValue(pick(raw, FIELD_ALIASES.externalUrl)),
+        profileUrl: safeLinkUrl(profileUrl),
+        isVerified: toBoolOrNull(pick(raw, FIELD_ALIASES.isVerified)),
+        isPrivate: toBoolOrNull(pick(raw, FIELD_ALIASES.isPrivate)),
+        isBusinessAccount: toBoolOrNull(pick(raw, FIELD_ALIASES.isBusinessAccount)),
+        businessCategoryName: stringValue(pick(raw, FIELD_ALIASES.businessCategoryName)),
+        highlightReelCount: toNumber(pick(raw, FIELD_ALIASES.highlightReelCount)),
+        igtvVideoCount: toNumber(pick(raw, FIELD_ALIASES.igtvVideoCount)),
+        joinedRecently: toBoolOrNull(pick(raw, FIELD_ALIASES.joinedRecently)),
+        lastUpdated: now
+      };
+    }
+
+    function diffRecord(oldRecord, newRecord) {
+      const changes = [];
+
+      for (const field of DIFF_FIELDS) {
+        const oldValue = oldRecord[field.key];
+        const newValue = newRecord[field.key];
+
+        if (field.type === "number") {
+          const oldNumber = toNumber(oldValue);
+          const newNumber = toNumber(newValue);
+
+          if (oldNumber === null || newNumber === null) continue;
+          if (oldNumber === newNumber) continue;
+
+          const diff = newNumber - oldNumber;
+          const badge = `${diff > 0 ? "+" : ""}${formatCount(diff)}`;
+
+          changes.push({
+            field: field.key,
+            label: field.label,
+            from: oldNumber,
+            to: newNumber,
+            diff,
+            direction: diff > 0 ? "up" : "down",
+            badge,
+            text: `${formatCount(oldNumber)} → ${formatCount(newNumber)}（${badge}）`
+          });
+
+          continue;
+        }
+
+        if (field.type === "boolean") {
+          const oldBool = toBoolOrNull(oldValue);
+          const newBool = toBoolOrNull(newValue);
+
+          if (oldBool === null || newBool === null) continue;
+          if (oldBool === newBool) continue;
+
+          changes.push({
+            field: field.key,
+            label: field.label,
+            from: oldBool,
+            to: newBool,
+            direction: "flat",
+            badge: "变更",
+            text: `${boolText(oldBool)} → ${boolText(newBool)}`
+          });
+
+          continue;
+        }
+
+        if (field.type === "avatar") {
+          const oldAvatar = normalizeAvatarCompare(oldValue);
+          const newAvatar = normalizeAvatarCompare(newValue);
+
+          if (oldAvatar === newAvatar) continue;
+
+          changes.push({
+            field: field.key,
+            label: field.label,
+            from: oldAvatar,
+            to: newAvatar,
+            direction: "flat",
+            badge: "变更",
+            text: "已更新"
+          });
+
+          continue;
+        }
+
+        const oldText = normalizeCompareText(oldValue);
+        const newText = normalizeCompareText(newValue);
+
+        if (oldText === newText) continue;
+
+        changes.push({
+          field: field.key,
+          label: field.label,
+          from: oldText,
+          to: newText,
+          direction: "flat",
+          badge: "变更",
+          text: `${shortText(oldText)} → ${shortText(newText)}`
+        });
+      }
+
+      return changes;
+    }
+
+    function renderCards() {
+      const records = Object.values(state.records)
+        .sort((a, b) => dateValue(b.lastUpdated) - dateValue(a.lastUpdated));
+
+      els.cards.innerHTML = records.map(renderCard).join("");
+      setupAvatarTimeouts();
+    }
+
+    function renderCard(record) {
+      const isLoading = state.loadingKeys.has(record.key);
+      const profileUrl = safeLinkUrl(
+        record.profileUrl || `https://www.instagram.com/${record.username}/`
+      );
+      const avatar = safeImageUrl(record.avatar);
+
+      const verifiedBadge = record.isVerified === true
+        ? `<span class="badge verified">认证</span>`
+        : "";
+
+      const privateBadge = record.isPrivate === true
+        ? `<span class="badge private">私密</span>`
+        : record.isPrivate === false
+          ? `<span class="badge public">公开</span>`
+          : "";
+
+      const externalLink = record.externalUrl
+        ? `<a href="${attr(safeLinkUrl(record.externalUrl))}" target="_blank" rel="noopener noreferrer">${displayText(record.externalUrl)}</a>`
+        : "—";
+
+      const homeLink = profileUrl
+        ? `<a href="${attr(profileUrl)}" target="_blank" rel="noopener noreferrer">打开主页</a>`
+        : "—";
+
+      return `
+        <article class="card ${isLoading ? "loading" : ""}" data-key="${attr(record.key)}">
+          <div class="card-top">
+            <a href="${attr(profileUrl)}" target="_blank" rel="noopener noreferrer">
+              <img class="avatar" src="${attr(avatar)}" alt="${attr("@" + record.username)}" loading="lazy" referrerpolicy="no-referrer">
+            </a>
+
+            <div class="identity">
+              <div class="username-line">
+                <span class="username">@${displayText(record.username)}</span>
+                ${verifiedBadge}
+                ${privateBadge}
+              </div>
+              <div class="fullname">${displayText(record.fullName)}</div>
+            </div>
+
+            <div class="card-actions">
+              <button class="mini-btn" data-action="refresh" ${state.busy ? "disabled" : ""}>
+                ${isLoading ? "刷新中" : "刷新"}
+              </button>
+              <button class="mini-btn danger" data-action="delete" ${state.busy ? "disabled" : ""}>删除</button>
+            </div>
+          </div>
+
+          <div class="metrics">
+            ${renderMetric("帖子", record.postsCount, "postsCount", record)}
+            ${renderMetric("粉丝", record.followersCount, "followersCount", record)}
+            ${renderMetric("关注", record.followsCount, "followsCount", record)}
+          </div>
+
+          <div class="details">
+            ${detailRow("ID", displayText(record.id))}
+            ${detailRow("简介", displayText(record.biography), "bio")}
+            ${detailRow("分类", displayText(record.businessCategoryName))}
+            ${record.isBusinessAccount !== null && record.isBusinessAccount !== undefined
+              ? detailRow("商业号", escapeHtml(boolText(record.isBusinessAccount)))
+              : ""}
+            ${detailRow("外链", externalLink)}
+            ${renderOptionalDetail("精选数", record.highlightReelCount)}
+            ${renderOptionalDetail("IGTV", record.igtvVideoCount)}
+            ${record.joinedRecently !== null && record.joinedRecently !== undefined
+              ? detailRow("近期加入", escapeHtml(boolText(record.joinedRecently)))
+              : ""}
+            ${detailRow("主页", homeLink)}
+            ${detailRow("更新时间", escapeHtml(formatDate(record.lastUpdated)))}
+          </div>
+
+          ${renderChangeBox(record)}
+        </article>
+      `;
+    }
+
+    function renderMetric(label, value, field, record) {
+      return `
+        <div class="metric">
+          <span>${escapeHtml(label)}</span>
+          <strong>${escapeHtml(formatCount(value))}</strong>
+          ${renderChangeBadge(record, field)}
+        </div>
+      `;
+    }
+
+    function renderChangeBadge(record, field) {
+      const item = record.lastChange?.items?.find(change => change.field === field);
+      if (!item) return "";
+
+      const cls =
+        item.direction === "down"
+          ? "down"
+          : item.direction === "up"
+            ? "up"
+            : "flat";
+
+      return `<em class="change-dot ${cls}">${escapeHtml(item.badge)}</em>`;
+    }
+
+    function renderChangeBox(record) {
+      const items = record.lastChange?.items || [];
+      if (!items.length) return "";
+
+      return `
+        <div class="change-box">
+          <strong>本次变化</strong>
+          ${items.map(item => `<div>${escapeHtml(item.label)}：${escapeHtml(item.text)}</div>`).join("")}
+        </div>
+      `;
+    }
+
+    function detailRow(label, html, extraClass = "") {
+      return `
+        <div class="detail ${extraClass}">
+          <label>${escapeHtml(label)}</label>
+          <div>${html}</div>
+        </div>
+      `;
+    }
+
+    function renderOptionalDetail(label, value) {
+      if (value === null || value === undefined || value === "") return "";
+      return detailRow(label, escapeHtml(formatCount(value)));
+    }
+
+    function setupAvatarTimeouts() {
+      const imgs = els.cards.querySelectorAll("img.avatar");
+
+      imgs.forEach(img => {
+        if (img.complete) {
+          if (!img.naturalWidth) img.src = PLACEHOLDER_AVATAR;
+          return;
+        }
+
+        const timer = window.setTimeout(() => {
+          if (!img.complete) {
+            img.src = PLACEHOLDER_AVATAR;
+          }
+        }, AVATAR_TIMEOUT_MS);
+
+        img.addEventListener("load", () => {
+          window.clearTimeout(timer);
+        }, { once: true });
+
+        img.addEventListener("error", () => {
+          window.clearTimeout(timer);
+          img.src = PLACEHOLDER_AVATAR;
+        }, { once: true });
+      });
+    }
+
+    function exportCsv() {
+      const records = Object.values(state.records);
+
+      if (!records.length) {
+        toast("暂无可导出数据");
+        return;
+      }
+
+      const columns = [
+        { key: "username", title: "用户名" },
+        { key: "fullName", title: "全名" },
+        { key: "id", title: "ID" },
+        { key: "postsCount", title: "帖子数" },
+        { key: "followersCount", title: "粉丝数" },
+        { key: "followsCount", title: "关注数" },
+        { key: "isVerified", title: "是否认证" },
+        { key: "isPrivate", title: "是否私密" },
+        { key: "isBusinessAccount", title: "是否商业号" },
+        { key: "businessCategoryName", title: "分类" },
+        { key: "biography", title: "简介" },
+        { key: "externalUrl", title: "外链" },
+        { key: "profileUrl", title: "主页" },
+        { key: "avatar", title: "头像" },
+        { key: "highlightReelCount", title: "精选数" },
+        { key: "igtvVideoCount", title: "IGTV" },
+        { key: "joinedRecently", title: "近期加入" },
+        { key: "lastUpdated", title: "最后更新时间" },
+        { key: "lastChangeText", title: "最近变化" }
+      ];
+
+      const rows = [
+        columns.map(col => csvCell(col.title)).join(",")
+      ];
+
+      for (const record of records) {
+        rows.push(
+          columns.map(col => csvCell(csvValue(record, col.key))).join(",")
+        );
+      }
+
+      const csv = "\ufeff" + rows.join("\r\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+
+      link.href = url;
+      link.download = `ig_profiles_${stamp}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast("已导出");
+    }
+
+    function csvValue(record, key) {
+      if (key === "lastUpdated") return formatDate(record.lastUpdated);
+
+      if (["isVerified", "isPrivate", "isBusinessAccount", "joinedRecently"].includes(key)) {
+        return boolText(record[key]);
+      }
+
+      if (key === "lastChangeText") {
+        return (record.lastChange?.items || [])
+          .map(item => `${item.label}:${item.text}`)
+          .join("; ");
+      }
+
+      return record[key] ?? "";
+    }
+
+    function csvCell(value) {
+      return `"${String(value ?? "").replace(/"/g, '""')}"`;
+    }
+
+    function loadRecords() {
+      try {
+        const raw = localStorage.getItem(RECORDS_STORAGE_KEY);
+        if (!raw) return {};
+
+        const parsed = JSON.parse(raw);
+        const list = Array.isArray(parsed) ? parsed : Object.values(parsed || {});
+        const records = {};
+
+        for (const item of list) {
+          if (!item) continue;
+
+          const key = String(item.key || item.username || "").toLowerCase();
+          if (!key) continue;
+
+          records[key] = {
+            ...item,
+            key
+          };
+        }
+
+        return records;
+      } catch {
+        return {};
+      }
+    }
+
+    function saveRecords() {
+      try {
+        if (!Object.keys(state.records).length) {
+          localStorage.removeItem(RECORDS_STORAGE_KEY);
+          return;
+        }
+
+        localStorage.setItem(RECORDS_STORAGE_KEY, JSON.stringify(state.records));
+      } catch {
+        toast("localStorage 保存失败");
+      }
+    }
+
+    function extractUsernames(input) {
+      return uniqueUsernames(
+        String(input || "")
+          .split(/[\s,，;；]+/)
+          .map(parseUsernameToken)
+          .filter(Boolean)
+      );
+    }
+
+    function parseUsernameToken(value) {
+      let token = String(value || "").trim();
+
+      if (!token) return "";
+
+      if (/instagram\.com/i.test(token)) {
+        const urlText = /^https?:\/\//i.test(token)
+          ? token
+          : "https://" + token.replace(/^\/+/, "");
+
+        try {
+          const url = new URL(urlText);
+          const host = url.hostname.toLowerCase().replace(/^www\./, "");
+
+          if (host !== "instagram.com" && !host.endsWith(".instagram.com")) {
+            return "";
+          }
+
+          const parts = url.pathname.split("/").filter(Boolean);
+
+          if (!parts.length) return "";
+
+          const first = parts[0].toLowerCase();
+          const reserved = new Set([
+            "p",
+            "reel",
+            "reels",
+            "tv",
+            "explore",
+            "accounts",
+            "about",
+            "developer",
+            "direct"
+          ]);
+
+          if (first === "stories" && parts[1]) {
+            return sanitizeUsername(decodeURIComponent(parts[1]));
+          }
+
+          if (reserved.has(first)) return "";
+
+          return sanitizeUsername(decodeURIComponent(parts[0]));
+        } catch {
+          return "";
+        }
+      }
+
+      token = token
+        .replace(/^@+/, "")
+        .replace(/^\/+|\/+$/g, "")
+        .split("?")[0]
+        .split("#")[0];
+
+      return sanitizeUsername(token);
+    }
+
+    function uniqueUsernames(usernames) {
+      const seen = new Set();
+      const result = [];
+
+      for (const item of usernames) {
+        const username = sanitizeUsername(item);
+        const key = username.toLowerCase();
+
+        if (!username || seen.has(key)) continue;
+
+        seen.add(key);
+        result.push(username);
+      }
+
+      return result;
+    }
+
+    function sanitizeUsername(value) {
+      const text = String(value || "").trim().replace(/^@+/, "");
+      const match = text.match(/[A-Za-z0-9._]{1,30}/);
+      return match ? match[0].replace(/^\.+|\.+$/g, "") : "";
+    }
+
+    function pick(obj, keys) {
+      for (const key of keys) {
+        const value = getByPath(obj, key);
+
+        if (value !== undefined && value !== null && value !== "") {
+          return value;
+        }
+      }
+
+      return undefined;
+    }
+
+    function getByPath(obj, path) {
+      if (!obj || !path) return undefined;
+
+      return String(path)
+        .split(".")
+        .reduce((current, key) => {
+          if (current === undefined || current === null) return undefined;
+          return current[key];
+        }, obj);
+    }
+
+    function toNumber(value) {
+      if (value === undefined || value === null || value === "") return null;
+
+      if (typeof value === "number") {
+        return Number.isFinite(value) ? value : null;
+      }
+
+      const text = String(value).trim().replace(/,/g, "");
+      const match = text.match(/^(-?\d+(?:\.\d+)?)([kmb]|万|亿)?$/i);
+
+      if (match) {
+        const num = Number(match[1]);
+        const unit = (match[2] || "").toLowerCase();
+        const multiplier = {
+          k: 1e3,
+          m: 1e6,
+          b: 1e9,
+          "万": 1e4,
+          "亿": 1e8
+        }[unit] || 1;
+
+        return Math.round(num * multiplier);
+      }
+
+      const cleaned = text.replace(/[^\d.-]/g, "");
+      if (!cleaned) return null;
+
+      const num = Number(cleaned);
+      return Number.isFinite(num) ? num : null;
+    }
+
+    function toBoolOrNull(value) {
+      if (value === undefined || value === null || value === "") return null;
+      if (typeof value === "boolean") return value;
+      if (typeof value === "number") return value !== 0;
+
+      const text = String(value).trim().toLowerCase();
+
+      if (["true", "1", "yes", "y", "是"].includes(text)) return true;
+      if (["false", "0", "no", "n", "否"].includes(text)) return false;
+
+      return null;
+    }
+
+    function boolText(value) {
+      if (value === null || value === undefined) return "—";
+      return value ? "是" : "否";
+    }
+
+    function stringValue(value) {
+      return value === undefined || value === null ? "" : String(value);
+    }
+
+    function normalizeCompareText(value) {
+      return String(value ?? "").trim().replace(/\s+/g, " ");
+    }
+
+    function normalizeAvatarCompare(value) {
+      const text = String(value || "").trim();
+      if (!text) return "";
+
+      try {
+        const url = new URL(text);
+        url.search = "";
+        url.hash = "";
+        return url.toString();
+      } catch {
+        return text.split("?")[0];
+      }
+    }
+
+    function shortText(value, maxLength = 24) {
+      const text = String(value || "").trim();
+      return text.length > maxLength ? text.slice(0, maxLength) + "…" : text;
+    }
+
+    function summarizeChanges(changes) {
+      const text = changes
+        .slice(0, 4)
+        .map(item => {
+          if (item.direction === "up" || item.direction === "down") {
+            return `${item.label}${item.badge}`;
+          }
+          return `${item.label}变更`;
+        })
+        .join("、");
+
+      return text + (changes.length > 4 ? " 等" : "");
+    }
+
+    function setBusy(isBusy, mode = "") {
+      state.busy = isBusy;
+
+      els.searchInput.disabled = isBusy;
+      els.searchBtn.disabled = isBusy;
+      els.updateAllBtn.disabled = isBusy;
+      els.clearRecordsBtn.disabled = isBusy;
+      els.clearDataBtn.disabled = isBusy;
+      els.exportBtn.disabled = isBusy;
+      els.apiKeyInput.disabled = isBusy;
+      els.apiKeySaveBtn.disabled = isBusy;
+      els.apiKeyClearBtn.disabled = isBusy;
+
+      els.searchBtn.textContent = isBusy && mode === "search" ? "查询中" : "查询";
+      els.updateAllBtn.textContent = isBusy && mode === "all" ? "更新中" : "一键更新";
+    }
+
+    function setLoadingByUsernames(usernames, isLoading) {
+      for (const username of usernames) {
+        const key = String(username || "").toLowerCase();
+
+        if (isLoading) {
+          state.loadingKeys.add(key);
+        } else {
+          state.loadingKeys.delete(key);
+        }
+      }
+
+      renderCards();
+    }
+
+    function chunk(list, size) {
+      const result = [];
+
+      for (let i = 0; i < list.length; i += size) {
+        result.push(list.slice(i, i + size));
+      }
+
+      return result;
+    }
+
+    function formatCount(value) {
+      if (value === null || value === undefined || value === "") return "—";
+
+      const number = Number(value);
+      if (Number.isFinite(number)) return numberFormatter.format(number);
+
+      return String(value);
+    }
+
+    function formatDate(value) {
+      if (!value) return "—";
+
+      const date = new Date(value);
+      if (!Number.isFinite(date.getTime())) return String(value);
+
+      return dateFormatter.format(date);
+    }
+
+    function dateValue(value) {
+      const time = new Date(value || 0).getTime();
+      return Number.isFinite(time) ? time : 0;
+    }
+
+    function safeLinkUrl(value) {
+      const text = String(value || "").trim();
+      if (!text) return "";
+
+      return /^https?:\/\//i.test(text)
+        ? text
+        : "https://" + text.replace(/^\/+/, "");
+    }
+
+    function safeImageUrl(value) {
+      const text = String(value || "").trim();
+
+      if (!text) return PLACEHOLDER_AVATAR;
+
+      if (/^data:image\//i.test(text)) {
+        return text;
+      }
+
+      if (!/^https?:\/\//i.test(text)) {
+        return PLACEHOLDER_AVATAR;
+      }
+
+      if (AVATAR_LOAD_MODE === "none") {
+        return PLACEHOLDER_AVATAR;
+      }
+
+      if (AVATAR_LOAD_MODE === "proxy") {
+        return `https://images.weserv.nl/?url=${encodeURIComponent(
+          text.replace(/^https?:\/\//i, "")
+        )}&w=160&h=160&fit=cover&output=webp`;
+      }
+
+      return text;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[char]));
+    }
+
+    function attr(value) {
+      return escapeHtml(value);
+    }
+
+    function displayText(value) {
+      if (value === null || value === undefined || value === "") return "—";
+      return escapeHtml(value);
+    }
+
+    function toast(message, duration = 3200) {
+      const node = document.createElement("div");
+
+      node.className = "toast";
+      node.textContent = message;
+
+      els.toastHost.appendChild(node);
+
+      window.setTimeout(() => {
+        node.classList.add("hide");
+        node.addEventListener("animationend", () => node.remove(), { once: true });
+      }, duration);
+    }
+
+    function errorToMessage(error) {
+      const message = error?.message || String(error);
+
+      if (message.startsWith("请先")) return message;
+
+      return `请求失败：${message}`;
+    }
+  </script>
+</body>
+</html>
