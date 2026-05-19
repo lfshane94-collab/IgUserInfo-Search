@@ -569,6 +569,25 @@
         grid-template-columns: 70px 1fr;
       }
     }
+
+/* 用户名旁边的蓝色认证对号 */
+.verify-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  transform: translateY(1px);
+}
+
+.verify-icon svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+
   </style>
 </head>
 
@@ -1315,8 +1334,22 @@
       const avatar = safeImageUrl(record.avatar);
 
       const verifiedBadge = record.isVerified === true
-        ? `<span class="badge verified">认证</span>`
-        : "";
+  ? `
+    <span class="verify-icon" title="已认证" aria-label="已认证">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <circle cx="12" cy="12" r="10" fill="#2f9df7"></circle>
+        <path
+          d="M7.4 12.3l3 3 6.2-6.7"
+          fill="none"
+          stroke="#fff"
+          stroke-width="2.4"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        ></path>
+      </svg>
+    </span>
+  `
+  : "";
 
       const privateBadge = record.isPrivate === true
         ? `<span class="badge private">私密</span>`
